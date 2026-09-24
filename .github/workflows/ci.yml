@@ -1,0 +1,48 @@
+name: Flutter Enterprise CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  analyze_and_test:
+    name: Lint & Unit Tests Pipeline
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Setup Java Environment
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Flutter SDK
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+
+      - name: Verify Flutter Version
+        run: flutter --version
+
+      - name: Install Project Dependencies
+        run: flutter pub get
+
+      - name: Static Code Analysis (Linter & Architecture Rules)
+        run: flutter analyze
+
+      - name: Run Automated Unit & BLoC Test Suites
+        run: flutter test --coverage
+
+      - name: Upload Test Coverage
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-coverage-report
+          path: coverage/lcov.info

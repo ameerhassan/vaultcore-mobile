@@ -18,28 +18,46 @@ Designed by **Ameer Hassan** (Senior Software Engineer • 9+ Years Experience).
 This system strictly enforces separation of concerns through Uncle Bob's **Clean Architecture**, guaranteeing that business logic is completely decoupled from UI widgets and third-party frameworks:
 
 ```mermaid
-graph TD
-    subgraph Presentation Layer
-        UI[Flutter UI Widgets & Pages] <--> Bloc[BankingBloc / State & Events]
+flowchart TD
+    subgraph Presentation["Presentation Layer"]
+        UI["Flutter UI (Widgets & Pages)"]
+        Bloc["BankingBloc (State & Events)"]
+        UI <--> Bloc
     end
 
-    subgraph Domain Layer (Core Business Rules)
-        Bloc --> UC1[GetTransactionsUseCase]
-        Bloc --> UC2[CreateTransferUseCase]
-        Bloc --> UC3[SyncPendingTransactionsUseCase]
-        UC1 & UC2 & UC3 --> RepoInterface[<<interface>> BankingRepository]
+    subgraph Domain["Domain Layer (Core Business Rules)"]
+        UC1["GetTransactionsUseCase"]
+        UC2["CreateTransferUseCase"]
+        UC3["SyncPendingTransactionsUseCase"]
+        RepoInterface["BankingRepository (Contract Interface)"]
+        
+        Bloc --> UC1
+        Bloc --> UC2
+        Bloc --> UC3
+        
+        UC1 --> RepoInterface
+        UC2 --> RepoInterface
+        UC3 --> RepoInterface
     end
 
-    subgraph Data Layer (Data Sources & Infrastructure)
-        RepoImpl[BankingRepositoryImpl] -. implements .-> RepoInterface
-        RepoImpl --> RemoteDS[TransactionRemoteDataSource (Dio REST API)]
-        RepoImpl --> LocalDS[TransactionLocalDataSource (Encrypted Storage)]
-        RepoImpl --> NetworkInfo[NetworkInfo (Connectivity Guard)]
+    subgraph Data["Data Layer (Data Sources & Persistence)"]
+        RepoImpl["BankingRepositoryImpl"]
+        RemoteDS["TransactionRemoteDataSource (Dio API)"]
+        LocalDS["TransactionLocalDataSource (Encrypted Storage)"]
+        NetworkInfo["NetworkInfo (Connectivity Guard)"]
+
+        RepoImpl -.-> RepoInterface
+        RepoImpl --> RemoteDS
+        RepoImpl --> LocalDS
+        RepoImpl --> NetworkInfo
     end
 
-    subgraph Core Infrastructure
-        RemoteDS --> QueuedAuth[AuthInterceptor (Automated 401 Token Refresh)]
-        LocalDS --> OfflineQueue[Offline Sync Engine & Cache]
+    subgraph Core["Core Infrastructure"]
+        QueuedAuth["AuthInterceptor (Automated 401 Token Refresh)"]
+        OfflineQueue["Offline Sync Engine & Cache"]
+
+        RemoteDS --> QueuedAuth
+        LocalDS --> OfflineQueue
     end
 ```
 
